@@ -25,9 +25,10 @@ var controller = {
   init: function() {
     //Set the first cat of the list to be displayed when loading the app
     model.currentCat = model.cat[0];
-    //Initialise both views
+    //Initialise all views
     catListView.init();
     catView.init();
+    adminView.init();
   },
   // Get currentCat data
   getCurrentCat: function() {
@@ -45,18 +46,35 @@ var controller = {
   incrementCounter: function() {
     model.currentCat.click++;
     catView.render();
+  },
+  // Display the admin section
+  showAdmin:function() {
+    document.getElementById('adminSection').style.display = "block";
+  },
+  // Hide the admin section
+  hideAdmin:function() {
+    document.getElementById('adminSection').style.display = "none";
+  },
+  // Update the current cat data with the data filled in the admin form
+  saveData: function() {
+    var currentCat = this.getCurrentCat();
+    currentCat.name = adminView.nameInput.value;
+    currentCat.picture = adminView.imgInput.value;
+    currentCat.click = adminView.clickInput.value;
+    catListView.render();
+    catView.render();
   }
 };
 
 /* ========= Views =========== */
 
 var catListView = {
-  // Renders the initial view of the list
+  // Render the initial view of the list
   init:function() {
     this.catList = document.getElementById('catList');
     this.render();
   },
-  // Renders the list of cats
+  // Render the list of cats
   render:function() {
     var cats = controller.getCats();
     this.catList.innerHTML = '';
@@ -64,11 +82,12 @@ var catListView = {
       var cat = cats[i];
       var listElem = document.createElement('li');
       listElem.textContent = cat.name;
-      // Renders selected cat in catView
+      // Render selected cat in catView
       listElem.addEventListener('click',(function(cat) {
         return function(){
           controller.setCurrentCat(cat);
           catView.render();
+          adminView.render();
         }
       })(cat));
       catList.appendChild(listElem);
@@ -77,7 +96,7 @@ var catListView = {
 };
 
 var catView = {
-  //Renders the initial cat view
+  // Render the initial cat view
   init: function() {
     this.cat = document.getElementById('selectedCat');
     this.catName = document.getElementById('catName');
@@ -87,11 +106,12 @@ var catView = {
     // Calls the function to increment the click counter everytime user clicks the image of the cat
     this.catImage.addEventListener('click',function() {
       controller.incrementCounter();
+      adminView.render();
     })
     this.render();
   },
 
-  // Renders the cat view
+  // Render the cat view
   render: function() {
     var currentCat = controller.getCurrentCat();
     this.catName.textContent = currentCat.name;
@@ -100,8 +120,39 @@ var catView = {
   }
 };
 
-
-
+var adminView = {
+  // Render the initial admin view
+  init:function() {
+    this.adminButton = document.getElementById('adminBtn');
+    this.cancelButton = document.getElementById('cancelBtn');
+    this.saveButton = document.getElementById('saveBtn');
+    this.nameInput = document.getElementById('nameInput');
+    this.imgInput = document.getElementById('imgInput');
+    this.clickInput = document.getElementById('clickInput');
+    this.adminButton.addEventListener('click',function() {
+      controller.showAdmin();
+    });
+    // Call the function to hide the admin section when user clicks the cancel button
+    this.cancelButton.addEventListener('click',function() {
+      controller.hideAdmin();
+    });
+    // Call the function to hide the admin section and to save the data fro the form when user clicks the save button
+    this.saveButton.addEventListener('click',function() {
+      var currentCat = controller.getCurrentCat();
+      controller.saveData();
+      controller.hideAdmin();
+    });
+    controller.hideAdmin();
+    this.render();
+  },
+  //Display the name, img and number of clicks for the current Cat in the Admin form
+  render:function() {
+    var currentCat = controller.getCurrentCat();
+    this.nameInput.value = currentCat.name;
+    this.imgInput.value = currentCat.picture;
+    this.clickInput.value = currentCat.click;
+  }
+};
 
 /* ========= Initiate the app =========== */
 controller.init();
